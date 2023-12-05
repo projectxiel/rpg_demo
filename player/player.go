@@ -18,6 +18,7 @@ type Frame struct {
 type Player struct {
 	SpriteSheet *ebiten.Image
 	Frame       *Frame
+	X, Y        float64
 }
 
 func New() *Player {
@@ -32,6 +33,8 @@ func New() *Player {
 			Width:  192 / 4,
 			Count:  4,
 		},
+		X: 100,
+		Y: 100,
 	}
 }
 
@@ -45,5 +48,22 @@ func (p *Player) Draw(screen *ebiten.Image) {
 	frame := p.SpriteSheet.SubImage(image.Rect(sx, sy, sx+p.Frame.Width, sy+p.Frame.Height)).(*ebiten.Image)
 
 	opts := &ebiten.DrawImageOptions{}
+	opts.GeoM.Translate(p.X, p.Y)
 	screen.DrawImage(frame, opts)
+}
+
+func (p *Player) Update() error {
+	if ebiten.IsKeyPressed(ebiten.KeyLeft) {
+		p.X -= 2 // Move left
+	}
+	if ebiten.IsKeyPressed(ebiten.KeyRight) {
+		p.X += 2 // Move right
+	}
+	if ebiten.IsKeyPressed(ebiten.KeyUp) {
+		p.Y -= 2 // Move up
+	}
+	if ebiten.IsKeyPressed(ebiten.KeyDown) {
+		p.Y += 2 // Move down
+	}
+	return nil
 }

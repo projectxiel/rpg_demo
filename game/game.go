@@ -17,6 +17,11 @@ func New() *Game {
 }
 
 func (g *Game) Update() error {
+	err := g.Player.Update()
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
 
