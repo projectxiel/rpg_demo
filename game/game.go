@@ -29,9 +29,9 @@ func (g *Game) Update() error {
 }
 
 func (g *Game) Draw(screen *ebiten.Image) {
-	g.Scene.DrawBg(screen, g.Player.X, g.Player.Y)
-	g.Player.Draw(screen)
-	g.Scene.DrawFg(screen, g.Player.X, g.Player.Y)
+	g.Scene.Draw(screen, g.Scene.Background, g.Player.X, g.Player.Y)
+	g.Player.Draw(screen, g.Scene.Width, g.Scene.Height)
+	g.Scene.Draw(screen, g.Scene.Foreground, g.Player.X, g.Player.Y)
 }
 
 func (g *Game) Layout(outsideWidth, outsideHeight int) (screenWidth, screenHeight int) {

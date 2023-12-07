@@ -2,6 +2,7 @@ package scene
 
 import (
 	"log"
+	"math"
 
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/ebitenutil"
@@ -10,6 +11,8 @@ import (
 type Scene struct {
 	Background *ebiten.Image
 	Foreground *ebiten.Image
+	Width      float64
+	Height     float64
 }
 
 func New(BgPath, FgPath string) *Scene {
@@ -26,23 +29,22 @@ func New(BgPath, FgPath string) *Scene {
 	return &Scene{
 		Background: Bg,
 		Foreground: Fg,
+		Width:      float64(Bg.Bounds().Dx()),
+		Height:     float64(Bg.Bounds().Dy()),
 	}
 }
 
-func (s *Scene) DrawBg(screen *ebiten.Image, playerX, playerY float64) {
-	bgX, bgY := -playerX, -playerY
-	opts := getDrawOptions(bgX, bgY)
-	screen.DrawImage(s.Background, opts)
-}
+func (s *Scene) Draw(screen, img *ebiten.Image, playerX, playerY float64) {
+	ScreenWidth := float64(screen.Bounds().Dx())
+	ScreenHeight := float64(screen.Bounds().Dy())
 
-func (s *Scene) DrawFg(screen *ebiten.Image, playerX, playerY float64) {
-	fgX, fgY := -playerX, -playerY
-	opts := getDrawOptions(fgX, fgY)
-	screen.DrawImage(s.Foreground, opts)
-}
+	bgX, bgY := -playerX+ScreenWidth/2, -playerY+ScreenHeight/2
 
-func getDrawOptions(X, Y float64) *ebiten.DrawImageOptions {
+	// Constrain background position to world boundaries
+	bgX = math.Min(math.Max(bgX, -s.Width+ScreenWidth), 0)
+	bgY = math.Min(math.Max(bgY, -s.Height+ScreenHeight), 0)
+
 	opts := &ebiten.DrawImageOptions{}
-	opts.GeoM.Translate(X, Y)
-	return opts
+	opts.GeoM.Translate(bgX, bgY)
+	screen.DrawImage(img, opts)
 }

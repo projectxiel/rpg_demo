@@ -42,7 +42,7 @@ func New() *Player {
 	}
 }
 
-func (p *Player) Draw(screen *ebiten.Image) {
+func (p *Player) Draw(screen *ebiten.Image, WorldWidth, WorldHeight float64) {
 	currentSpriteSheet := p.SpriteSheets[p.Direction]
 	// Determine the x, y location of the current frame on the sprite sheet
 	sx := p.Frame.Current * p.Frame.Width
@@ -58,11 +58,32 @@ func (p *Player) Draw(screen *ebiten.Image) {
 	}
 
 	//Draw Character at the center of the screen
+	var charX, charY float64
 	ScreenWidth, ScreenHeight := float64(screen.Bounds().Dx()), float64(screen.Bounds().Dy())
-	charX := ScreenWidth/2 - float64(p.Frame.Width)/2
-	charY := ScreenHeight/2 - float64(p.Frame.Height)/2
 
-	opts.GeoM.Translate(charX, charY)
+	// Keep player centered unless near world boundaries
+	if p.X > ScreenWidth/2 && p.X < WorldWidth-ScreenWidth/2 {
+		charX = ScreenWidth / 2
+	} else {
+		// Player is near or at the horizontal boundary
+		if p.X <= ScreenWidth/2 {
+			charX = p.X
+		} else {
+			charX = ScreenWidth - (WorldWidth - p.X)
+		}
+	}
+
+	if p.Y > ScreenHeight/2 && p.Y < WorldHeight-ScreenHeight/2 {
+		charY = ScreenHeight / 2
+	} else {
+		// Player is near or at the vertical boundary
+		if p.Y <= ScreenHeight/2 {
+			charY = p.Y
+		} else {
+			charY = ScreenHeight - (WorldHeight - p.Y)
+		}
+	}
+	opts.GeoM.Translate(charX-float64(p.Frame.Width)/2, charY-float64(p.Frame.Height)/2)
 	screen.DrawImage(frame, opts)
 	fmt.Println(charX, charY)
 }
