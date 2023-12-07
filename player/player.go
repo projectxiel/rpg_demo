@@ -1,6 +1,7 @@
 package player
 
 import (
+	"fmt"
 	"image"
 	"log"
 
@@ -34,10 +35,10 @@ func New() *Player {
 			Width:  192 / 4,
 			Count:  4,
 		},
-		Speed:     2,
+		Speed:     5,
 		Direction: "down",
-		X:         100,
-		Y:         100,
+		X:         0,
+		Y:         0,
 	}
 }
 
@@ -55,8 +56,15 @@ func (p *Player) Draw(screen *ebiten.Image) {
 		opts.GeoM.Scale(-1, 1)                         // Flip horizontally
 		opts.GeoM.Translate(float64(p.Frame.Width), 0) // Adjust the position after flipping
 	}
-	opts.GeoM.Translate(p.X, p.Y)
+
+	//Draw Character at the center of the screen
+	ScreenWidth, ScreenHeight := float64(screen.Bounds().Dx()), float64(screen.Bounds().Dy())
+	charX := ScreenWidth/2 - float64(p.Frame.Width)/2
+	charY := ScreenHeight/2 - float64(p.Frame.Height)/2
+
+	opts.GeoM.Translate(charX, charY)
 	screen.DrawImage(frame, opts)
+	fmt.Println(charX, charY)
 }
 
 func (p *Player) Update() error {

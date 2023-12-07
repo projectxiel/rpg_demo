@@ -29,11 +29,11 @@ func (g *Game) Update() error {
 }
 
 func (g *Game) Draw(screen *ebiten.Image) {
-	g.Scene.DrawBg(screen)
+	g.Scene.DrawBg(screen, g.Player.X, g.Player.Y)
 	g.Player.Draw(screen)
-	g.Scene.DrawFg(screen)
+	g.Scene.DrawFg(screen, g.Player.X, g.Player.Y)
 }
 
 func (g *Game) Layout(outsideWidth, outsideHeight int) (screenWidth, screenHeight int) {
-	return 320, 240
+	return 320 * 2.5, 240 * 2.5 //Mutiplied by 2.5
 }

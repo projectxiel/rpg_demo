@@ -29,17 +29,20 @@ func New(BgPath, FgPath string) *Scene {
 	}
 }
 
-func (s *Scene) DrawBg(screen *ebiten.Image) {
-	opts := getDrawOptions()
+func (s *Scene) DrawBg(screen *ebiten.Image, playerX, playerY float64) {
+	bgX, bgY := -playerX, -playerY
+	opts := getDrawOptions(bgX, bgY)
 	screen.DrawImage(s.Background, opts)
 }
 
-func (s *Scene) DrawFg(screen *ebiten.Image) {
-	opts := getDrawOptions()
+func (s *Scene) DrawFg(screen *ebiten.Image, playerX, playerY float64) {
+	fgX, fgY := -playerX, -playerY
+	opts := getDrawOptions(fgX, fgY)
 	screen.DrawImage(s.Foreground, opts)
 }
 
-func getDrawOptions() *ebiten.DrawImageOptions {
+func getDrawOptions(X, Y float64) *ebiten.DrawImageOptions {
 	opts := &ebiten.DrawImageOptions{}
+	opts.GeoM.Translate(X, Y)
 	return opts
 }
