@@ -15,12 +15,12 @@ type Game struct {
 func New() *Game {
 	return &Game{
 		Player: player.New(),
-		Scene:  scene.New("assets/mainMap.png", "assets/mainMapFore.png"),
+		Scene:  scene.New("assets/mainMap.png", "assets/mainMapFore.png", "assets/mainMap.json"),
 	}
 }
 
 func (g *Game) Update() error {
-	err := g.Player.Update()
+	err := g.Player.Update(g.Scene.Collisions.Obstacles)
 	if err != nil {
 		return err
 	}

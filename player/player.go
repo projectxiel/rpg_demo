@@ -88,29 +88,33 @@ func (p *Player) Draw(screen *ebiten.Image, WorldWidth, WorldHeight float64) {
 	fmt.Println(charX, charY)
 }
 
-func (p *Player) Update() error {
+func (p *Player) Update(sceneCollisions []*image.Rectangle) error {
+	var newX, newY float64
 	moving := false
+
 	if ebiten.IsKeyPressed(ebiten.KeyLeft) {
-		p.X -= p.Speed // Move left
 		p.Direction = "left"
 		moving = true
 	}
 	if ebiten.IsKeyPressed(ebiten.KeyRight) {
-		p.X += p.Speed // Move right
 		p.Direction = "right"
 		moving = true
 	}
 	if ebiten.IsKeyPressed(ebiten.KeyUp) {
-		p.Y -= p.Speed // Move up
 		p.Direction = "up"
 		moving = true
 	}
 	if ebiten.IsKeyPressed(ebiten.KeyDown) {
-		p.Y += p.Speed // Move down
 		p.Direction = "down"
 		moving = true
 	}
+
 	if moving {
+		newX, newY = p.FuturePosition(p.Direction)
+		if !p.Colliding(sceneCollisions, newX, newY) {
+			p.X = newX
+			p.Y = newY
+		}
 		// Increment the tick count
 		p.Frame.TickCount++
 	}
@@ -121,6 +125,32 @@ func (p *Player) Update() error {
 		p.Frame.TickCount = 0 // Reset the tick count
 	}
 	return nil
+}
+
+func (p *Player) Colliding(obstacles []*image.Rectangle, newX, newY float64) bool {
+	playerRect := image.Rect(int(newX)-p.Frame.Width/2, int(newY)-p.Frame.Height/2, int(newX)+p.Frame.Width-p.Frame.Width/2, int(newY)+p.Frame.Height-p.Frame.Height/2)
+	for _, obstacle := range obstacles {
+		if !playerRect.Intersect(*obstacle).Empty() {
+			// Collision detected
+			return true
+		}
+	}
+	// No collision
+	return false
+}
+
+func (p Player) FuturePosition(dir string) (float64, float64) {
+	switch dir {
+	case "left":
+		p.X -= p.Speed // Move left
+	case "right":
+		p.X += p.Speed // Move right
+	case "up":
+		p.Y -= p.Speed // Move up
+	case "down":
+		p.Y += p.Speed // Move down
+	}
+	return p.X, p.Y
 }
 
 func loadSpriteSheets() map[string]*ebiten.Image {

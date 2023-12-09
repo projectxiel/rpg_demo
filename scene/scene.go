@@ -1,8 +1,10 @@
 package scene
 
 import (
+	"image/color"
 	"log"
 	"math"
+	"rpg_demo/collisions"
 
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/ebitenutil"
@@ -13,9 +15,10 @@ type Scene struct {
 	Foreground *ebiten.Image
 	Width      float64
 	Height     float64
+	Collisions collisions.Collisions
 }
 
-func New(BgPath, FgPath string) *Scene {
+func New(BgPath, FgPath, ColPath string) *Scene {
 	// Load the background
 	Bg, _, err := ebitenutil.NewImageFromFile(BgPath)
 	if err != nil {
@@ -31,6 +34,7 @@ func New(BgPath, FgPath string) *Scene {
 		Foreground: Fg,
 		Width:      float64(Bg.Bounds().Dx()),
 		Height:     float64(Bg.Bounds().Dy()),
+		Collisions: collisions.New(ColPath),
 	}
 }
 
@@ -47,4 +51,25 @@ func (s *Scene) Draw(screen, img *ebiten.Image, playerX, playerY float64) {
 	opts := &ebiten.DrawImageOptions{}
 	opts.GeoM.Translate(bgX, bgY)
 	screen.DrawImage(img, opts)
+	drawCollisions(s, screen, bgX, bgY)
+
+}
+
+func drawCollisions(s *Scene, screen *ebiten.Image, bgX, bgY float64) {
+	for _, obstacle := range s.Collisions.Obstacles {
+		// Translate the obstacle's position based on the background position
+		obstacleOpts := &ebiten.DrawImageOptions{}
+		obstacleImage := ebiten.NewImage(obstacle.Dx(), obstacle.Dy())
+		obstacleColor := color.RGBA{255, 0, 0, 80} // Semi-transparent red color
+		obstacleOpts.GeoM.Translate(bgX+float64(obstacle.Min.X), bgY+float64(obstacle.Min.Y))
+		// Create a colored rectangle to represent the obstacle
+
+		obstacleImage.Fill(obstacleColor)
+
+		// Draw the obstacle image
+		screen.DrawImage(obstacleImage, obstacleOpts)
+
+		// Dispose of the obstacle image to avoid memory leaks if you're done with it
+		obstacleImage.Dispose()
+	}
 }
