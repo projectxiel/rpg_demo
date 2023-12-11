@@ -37,8 +37,8 @@ func New() *Player {
 		},
 		Speed:     5,
 		Direction: "down",
-		X:         0,
-		Y:         0,
+		X:         1000,
+		Y:         1000,
 	}
 }
 

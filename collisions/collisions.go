@@ -8,8 +8,16 @@ import (
 	"os"
 )
 
+type Door struct {
+	Rect        *image.Rectangle
+	Id          string
+	Destination string
+	NewX, NewY  float64
+}
+
 type Collisions struct {
 	Obstacles []*image.Rectangle
+	Doors     []*Door
 }
 
 // Used for json unmarsharling
@@ -24,9 +32,18 @@ type DiagonalObstacleData struct {
 	Count          int
 }
 
+type DoorData struct {
+	X1, Y1      int
+	X2, Y2      int
+	NewX, NewY  float64
+	Destination string
+	Id          string
+}
+
 type CollisionData struct {
 	Obstacles []ObstacleData
 	Diagonals []DiagonalObstacleData
+	Doors     []DoorData
 }
 
 func New(path string) Collisions {
@@ -45,6 +62,17 @@ func New(path string) Collisions {
 			i := image.Rect(x1, y1, x2, y2)
 			collisions.Obstacles = append(collisions.Obstacles, &i)
 		}
+	}
+	for _, d := range data.Doors {
+		i := image.Rect(d.X1, d.Y1, d.X2, d.Y2)
+		d := &Door{
+			Rect:        &i,
+			Id:          d.Id,
+			Destination: d.Destination,
+			NewX:        d.NewX,
+			NewY:        d.NewY,
+		}
+		collisions.Doors = append(collisions.Doors, d)
 	}
 	return collisions
 }

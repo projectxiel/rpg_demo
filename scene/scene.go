@@ -51,11 +51,12 @@ func (s *Scene) Draw(screen, img *ebiten.Image, playerX, playerY float64) {
 	opts := &ebiten.DrawImageOptions{}
 	opts.GeoM.Translate(bgX, bgY)
 	screen.DrawImage(img, opts)
-	drawCollisions(s, screen, bgX, bgY)
+	// drawCollisions(s, screen, bgX, bgY)
+	drawDoors(s, screen, bgX, bgY)
 
 }
 
-func drawCollisions(s *Scene, screen *ebiten.Image, bgX, bgY float64) {
+func DrawCollisions(s *Scene, screen *ebiten.Image, bgX, bgY float64) {
 	for _, obstacle := range s.Collisions.Obstacles {
 		// Translate the obstacle's position based on the background position
 		obstacleOpts := &ebiten.DrawImageOptions{}
@@ -71,5 +72,24 @@ func drawCollisions(s *Scene, screen *ebiten.Image, bgX, bgY float64) {
 
 		// Dispose of the obstacle image to avoid memory leaks if you're done with it
 		obstacleImage.Dispose()
+	}
+}
+
+func drawDoors(s *Scene, screen *ebiten.Image, bgX, bgY float64) {
+	for _, door := range s.Collisions.Doors {
+		// Translate the obstacle's position based on the background position
+		doorOpts := &ebiten.DrawImageOptions{}
+		doorImage := ebiten.NewImage(door.Rect.Dx(), door.Rect.Dy())
+		doorColor := color.RGBA{0, 0, 255, 80} // Semi-transparent blue color
+		doorOpts.GeoM.Translate(bgX+float64(door.Rect.Min.X), bgY+float64(door.Rect.Min.Y))
+		// Create a colored rectangle to represent the door
+
+		doorImage.Fill(doorColor)
+
+		// Draw the door image
+		screen.DrawImage(doorImage, doorOpts)
+
+		// Dispose of the door image to avoid memory leaks if you're done with it
+		doorImage.Dispose()
 	}
 }
