@@ -4,11 +4,17 @@ import (
 	"fmt"
 	"image"
 	"log"
+	"rpg_demo/collisions"
 
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/ebitenutil"
 	"golang.org/x/text/cases"
 	"golang.org/x/text/language"
+)
+
+const (
+	PlayState = iota
+	TransitionState
 )
 
 type Frame struct {
@@ -88,7 +94,7 @@ func (p *Player) Draw(screen *ebiten.Image, WorldWidth, WorldHeight float64) {
 	fmt.Println(charX, charY)
 }
 
-func (p *Player) Update(sceneCollisions []*image.Rectangle) error {
+func (p *Player) Update(sceneCollisions collisions.Collisions, onDoorChange func(*collisions.Door), onStateChange func(newState int)) error {
 	var newX, newY float64
 	moving := false
 
@@ -111,9 +117,14 @@ func (p *Player) Update(sceneCollisions []*image.Rectangle) error {
 
 	if moving {
 		newX, newY = p.FuturePosition(p.Direction)
-		if !p.Colliding(sceneCollisions, newX, newY) {
+		if !p.Colliding(sceneCollisions.Obstacles, newX, newY) {
 			p.X = newX
 			p.Y = newY
+		}
+		colliding, door := p.CollidingWithDoor(sceneCollisions.Doors, newX, newY)
+		if p.Colliding(sceneCollisions.Obstacles, newX, newY) && colliding {
+			onDoorChange(door)
+			onStateChange(TransitionState)
 		}
 		// Increment the tick count
 		p.Frame.TickCount++
@@ -137,6 +148,19 @@ func (p *Player) Colliding(obstacles []*image.Rectangle, newX, newY float64) boo
 	}
 	// No collision
 	return false
+}
+
+func (p *Player) CollidingWithDoor(doors []*collisions.Door, newX, newY float64) (bool, *collisions.Door) {
+	playerRect := image.Rect(int(newX)-p.Frame.Width/2, int(newY)-p.Frame.Height/2, int(newX)+p.Frame.Width-p.Frame.Width/2, int(newY)+p.Frame.Height-p.Frame.Height/2)
+	for _, door := range doors {
+		if !playerRect.Intersect(*door.Rect).Empty() {
+			//Collision dectected
+			return true, door
+		}
+	}
+	// No collision
+	var door *collisions.Door
+	return false, door
 }
 
 func (p Player) FuturePosition(dir string) (float64, float64) {

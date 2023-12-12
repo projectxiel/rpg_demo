@@ -18,7 +18,11 @@ type Scene struct {
 	Collisions collisions.Collisions
 }
 
-func New(BgPath, FgPath, ColPath string) *Scene {
+func New(name string) *Scene {
+	prefix := "assets/"
+	BgPath := prefix + name + ".png"
+	FgPath := prefix + name + "Fore.png"
+	ColPath := prefix + name + ".json"
 	// Load the background
 	Bg, _, err := ebitenutil.NewImageFromFile(BgPath)
 	if err != nil {

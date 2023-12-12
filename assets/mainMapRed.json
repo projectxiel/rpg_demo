@@ -200,7 +200,7 @@
             "y1": 840,
             "x2": 1095,
             "y2": 945,
-            "destination": "mainMapRed",
+            "destination": "mainMap",
             "id": "fd",
             "newx": 140,
             "newy": 20
@@ -210,7 +210,7 @@
             "y1": 840,
             "x2": 1390,
             "y2": 945,
-            "destination": "mainMapRed",
+            "destination": "mainMap",
             "id": "sd",
             "newx": 1000,
             "newy": 1000
@@ -220,7 +220,7 @@
             "y1": 600,
             "x2": 2015,
             "y2": 710,
-            "destination": "mainMapRed",
+            "destination": "mainMap",
             "id": "td",
             "newx": 1500,
             "newy": 1500
@@ -230,7 +230,7 @@
             "y1": 600,
             "x2": 2495,
             "y2": 710,
-            "destination": "mainMapRed",
+            "destination": "mainMap",
             "id": "ffd",
             "newx": 700,
             "newy": 700
