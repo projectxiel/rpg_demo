@@ -18,6 +18,7 @@ type Door struct {
 type Collisions struct {
 	Obstacles []*image.Rectangle
 	Doors     []*Door
+	Music     string
 }
 
 // Used for json unmarsharling
@@ -44,6 +45,7 @@ type CollisionData struct {
 	Obstacles []ObstacleData
 	Diagonals []DiagonalObstacleData
 	Doors     []DoorData
+	Music     string
 }
 
 func New(path string) Collisions {
@@ -74,6 +76,7 @@ func New(path string) Collisions {
 		}
 		collisions.Doors = append(collisions.Doors, d)
 	}
+	collisions.Music = data.Music
 	return collisions
 }
 

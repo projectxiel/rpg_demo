@@ -1,7 +1,6 @@
 package player
 
 import (
-	"fmt"
 	"image"
 	"log"
 	"rpg_demo/collisions"
@@ -91,7 +90,6 @@ func (p *Player) Draw(screen *ebiten.Image, WorldWidth, WorldHeight float64) {
 	}
 	opts.GeoM.Translate(charX-float64(p.Frame.Width)/2, charY-float64(p.Frame.Height)/2)
 	screen.DrawImage(frame, opts)
-	fmt.Println(charX, charY)
 }
 
 func (p *Player) Update(sceneCollisions collisions.Collisions, onDoorChange func(*collisions.Door), onStateChange func(newState int)) error {
@@ -114,7 +112,10 @@ func (p *Player) Update(sceneCollisions collisions.Collisions, onDoorChange func
 		p.Direction = "down"
 		moving = true
 	}
-
+	if ebiten.IsKeyPressed(ebiten.KeyR) {
+		p.X = 1000
+		p.Y = 1000
+	}
 	if moving {
 		newX, newY = p.FuturePosition(p.Direction)
 		if !p.Colliding(sceneCollisions.Obstacles, newX, newY) {

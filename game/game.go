@@ -1,10 +1,13 @@
 package game
 
 import (
+	"fmt"
 	"image/color"
 	"rpg_demo/collisions"
+	"rpg_demo/music"
 	"rpg_demo/player"
 	"rpg_demo/scene"
+	"time"
 
 	"github.com/hajimehoshi/ebiten/v2"
 )
@@ -20,6 +23,11 @@ const (
 type Transition struct {
 	Alpha     float64
 	FadeSpeed float64
+	Music     bool
+}
+
+type KeyPressed struct {
+	KeyP bool
 }
 
 type Game struct {
@@ -29,6 +37,8 @@ type Game struct {
 	CurrentDoor  *collisions.Door
 	State        GameState
 	Transition   *Transition
+	Music        *music.Music
+	KeyPressed   KeyPressed
 }
 
 func New() *Game {
@@ -42,10 +52,12 @@ func New() *Game {
 			Alpha:     0.0,
 			FadeSpeed: 0.05,
 		},
+		Music: &music.Music{},
 	}
 }
 
 func (g *Game) Update() error {
+	g.HandleMusic()
 	switch g.State {
 	case PlayState:
 		err := g.Player.Update(g.Scenes[g.CurrentScene].Collisions, func(door *collisions.Door) {
@@ -100,4 +112,43 @@ func (g *Game) Draw(screen *ebiten.Image) {
 
 func (g *Game) Layout(outsideWidth, outsideHeight int) (screenWidth, screenHeight int) {
 	return 320 * 2.5, 240 * 2.5 //Mutiplied by 2.5
+}
+
+func (g *Game) HandleMusic() {
+	if ebiten.IsKeyPressed(ebiten.KeyP) && !g.KeyPressed.KeyP {
+		if g.Music.Paused {
+			g.Music.PlayAudio()
+		} else {
+			g.Music.Pause()
+		}
+
+	}
+	g.KeyPressed.KeyP = ebiten.IsKeyPressed(ebiten.KeyP)
+	if g.Music.IsEmpty() {
+		fmt.Println("Empty")
+		g.Music.LoadAudio("./assets/" + g.Scenes[g.CurrentScene].Collisions.Music)
+		g.Music.PlayAudio()
+	} else if !g.Music.IsPlaying() && !g.Music.Paused {
+		g.Music.RewindMusic()
+		fmt.Println("looped")
+	} else if g.Music.CurrentSong != "./assets/"+g.Scenes[g.CurrentScene].Collisions.Music && !g.Transition.Music {
+		fmt.Println("New Song")
+		g.Transition.Music = true
+		// Channel to signal when fade-out is complete
+		doneChan := make(chan struct{})
+
+		// Start fade-out in a goroutine
+		go g.Music.FadeOut(time.Second, doneChan)
+
+		// Wait for the fade-out to complete in another goroutine
+		go func() {
+			<-doneChan // Wait for fade-out to complete
+
+			// Load and play the new audio
+			g.Music.LoadAudio("./assets/" + g.Scenes[g.CurrentScene].Collisions.Music)
+			g.Music.PlayAudio()
+			g.Transition.Music = false
+		}()
+	}
+
 }
