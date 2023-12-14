@@ -236,5 +236,43 @@
             "newy": 700
         }
     ],
+    "npcs": [
+        {
+            "name": "Bryan",
+            "spriteSheets": {
+                "left": "playerRightBlue.png",
+                "right": "playerRightBlue.png",
+                "up": "playerUpBlue.png",
+                "down": "playerDownBlue.png"
+            },
+            "frameCount": 4,
+            "x": 1200,
+            "y": 950,
+            "behaviors": [
+                {
+                    "type": "walker",
+                    "details": {
+                        "speed": 7.0,
+                        "direction": "left",
+                        "timer": {
+                            "moveTimer": 60,
+                            "stopTimer": 0,
+                            "isStopped": true,
+                            "stopDuration": 120
+                        }
+                    }
+                },
+                {
+                    "type": "talker",
+                    "details": {
+                        "dialogues": [
+                            "Hello there!",
+                            "Welcome to our world!"
+                        ]
+                    }
+                }
+            ]
+        }
+    ],
     "music": "Dramatic Intro-Loop.wav"
 }

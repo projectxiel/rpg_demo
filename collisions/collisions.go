@@ -1,11 +1,8 @@
 package collisions
 
 import (
-	"encoding/json"
 	"image"
-	"io"
-	"log"
-	"os"
+	"rpg_demo/data"
 )
 
 type Door struct {
@@ -18,38 +15,10 @@ type Door struct {
 type Collisions struct {
 	Obstacles []*image.Rectangle
 	Doors     []*Door
-	Music     string
 }
 
-// Used for json unmarsharling
-type ObstacleData struct {
-	X1, Y1 int
-	X2, Y2 int
-}
+func New(data *data.Data) Collisions {
 
-type DiagonalObstacleData struct {
-	StartX, StartY int
-	Width, Height  int
-	Count          int
-}
-
-type DoorData struct {
-	X1, Y1      int
-	X2, Y2      int
-	NewX, NewY  float64
-	Destination string
-	Id          string
-}
-
-type CollisionData struct {
-	Obstacles []ObstacleData
-	Diagonals []DiagonalObstacleData
-	Doors     []DoorData
-	Music     string
-}
-
-func New(path string) Collisions {
-	data := loadJsonFile(path)
 	collisions := Collisions{}
 	for _, obs := range data.Obstacles {
 		i := image.Rect(obs.X1, obs.Y1, obs.X2, obs.Y2)
@@ -76,23 +45,5 @@ func New(path string) Collisions {
 		}
 		collisions.Doors = append(collisions.Doors, d)
 	}
-	collisions.Music = data.Music
 	return collisions
-}
-
-func loadJsonFile(path string) *CollisionData {
-	//Loading json collsion file
-	jsonFile, err := os.Open(path)
-	if err != nil {
-		log.Fatal(err)
-	}
-	defer jsonFile.Close()
-
-	data := &CollisionData{}
-	byteValue, err := io.ReadAll(jsonFile)
-	if err != nil {
-		log.Fatal(err)
-	}
-	json.Unmarshal(byteValue, data)
-	return data
 }

@@ -30,6 +30,7 @@ type Player struct {
 	Frame        *Frame
 	Speed        float64
 	X, Y         float64
+	CanMove      bool
 }
 
 func New() *Player {
@@ -44,6 +45,7 @@ func New() *Player {
 		Direction: "down",
 		X:         1000,
 		Y:         1000,
+		CanMove:   true,
 	}
 }
 
@@ -95,23 +97,25 @@ func (p *Player) Draw(screen *ebiten.Image, WorldWidth, WorldHeight float64) {
 func (p *Player) Update(sceneCollisions collisions.Collisions, onDoorChange func(*collisions.Door), onStateChange func(newState int)) error {
 	var newX, newY float64
 	moving := false
+	if p.CanMove {
+		if ebiten.IsKeyPressed(ebiten.KeyLeft) {
+			p.Direction = "left"
+			moving = true
+		}
+		if ebiten.IsKeyPressed(ebiten.KeyRight) {
+			p.Direction = "right"
+			moving = true
+		}
+		if ebiten.IsKeyPressed(ebiten.KeyUp) {
+			p.Direction = "up"
+			moving = true
+		}
+		if ebiten.IsKeyPressed(ebiten.KeyDown) {
+			p.Direction = "down"
+			moving = true
+		}
+	}
 
-	if ebiten.IsKeyPressed(ebiten.KeyLeft) {
-		p.Direction = "left"
-		moving = true
-	}
-	if ebiten.IsKeyPressed(ebiten.KeyRight) {
-		p.Direction = "right"
-		moving = true
-	}
-	if ebiten.IsKeyPressed(ebiten.KeyUp) {
-		p.Direction = "up"
-		moving = true
-	}
-	if ebiten.IsKeyPressed(ebiten.KeyDown) {
-		p.Direction = "down"
-		moving = true
-	}
 	if ebiten.IsKeyPressed(ebiten.KeyR) {
 		p.X = 1000
 		p.Y = 1000

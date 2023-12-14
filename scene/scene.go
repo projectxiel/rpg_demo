@@ -5,6 +5,9 @@ import (
 	"log"
 	"math"
 	"rpg_demo/collisions"
+	"rpg_demo/data"
+	"rpg_demo/npc"
+	"rpg_demo/player"
 
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/ebitenutil"
@@ -16,13 +19,19 @@ type Scene struct {
 	Width      float64
 	Height     float64
 	Collisions collisions.Collisions
+	Music      string
+	NPCs       map[string]*npc.NPC
+	X, Y       float64
 }
 
 func New(name string) *Scene {
 	prefix := "assets/"
+	JsonPath := prefix + name + ".json"
+	data := data.LoadJsonFile(JsonPath)
+
 	BgPath := prefix + name + ".png"
 	FgPath := prefix + name + "Fore.png"
-	ColPath := prefix + name + ".json"
+
 	// Load the background
 	Bg, _, err := ebitenutil.NewImageFromFile(BgPath)
 	if err != nil {
@@ -38,7 +47,9 @@ func New(name string) *Scene {
 		Foreground: Fg,
 		Width:      float64(Bg.Bounds().Dx()),
 		Height:     float64(Bg.Bounds().Dy()),
-		Collisions: collisions.New(ColPath),
+		Collisions: collisions.New(data),
+		Music:      data.Music,
+		NPCs:       npc.LoadNPCs(data.NPCs),
 	}
 }
 
@@ -57,9 +68,34 @@ func (s *Scene) Draw(screen, img *ebiten.Image, playerX, playerY float64) {
 	screen.DrawImage(img, opts)
 	// drawCollisions(s, screen, bgX, bgY)
 	drawDoors(s, screen, bgX, bgY)
-
+	s.X, s.Y = bgX, bgY
 }
-
+func (s *Scene) Update() {
+	for _, npc := range s.NPCs {
+		npc.Update()
+	}
+}
+func (s *Scene) DrawNPCs(screen *ebiten.Image) {
+	for _, npc := range s.NPCs {
+		npc.Draw(screen, s.X, s.Y)
+	}
+}
+func (s *Scene) HandleNPCInteractions(player *player.Player, PressedLastFrame bool) {
+	playerX, playerY := player.X-float64(player.Frame.Width)/2, player.Y-float64(player.Frame.Height)/2
+	for _, npc1 := range s.NPCs {
+		if npc1.Near(playerX, playerY) {
+			if ebiten.IsKeyPressed(ebiten.KeyZ) && !PressedLastFrame {
+				if npc1.InteractionState == npc.NoInteraction && npc1.IsTalkerAndWalker() {
+					npc1.InteractionState = npc.PlayerInteracted
+					player.CanMove = false // Disallow player movement
+				} else if npc1.InteractionState == npc.WaitingForPlayerToResume {
+					npc1.InteractionState = npc.NoInteraction
+					player.CanMove = true // Allow player movement
+				}
+			}
+		}
+	}
+}
 func DrawCollisions(s *Scene, screen *ebiten.Image, bgX, bgY float64) {
 	for _, obstacle := range s.Collisions.Obstacles {
 		// Translate the obstacle's position based on the background position

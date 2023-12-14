@@ -60,7 +60,29 @@ func (m *Music) LoadAudio(filePath string) error {
 
 	return nil
 }
+func (m *Music) FadeIn(duration time.Duration, doneChan chan struct{}) {
+	// Determine the amount of time to sleep between volume adjustments
+	const steps = 30
+	sleepDuration := duration / steps
 
+	// Start with volume at 0
+	m.player.SetVolume(0)
+	// Gradually increase the volume
+	for i := 0; i < steps; i++ {
+		// Calculate the new volume (linearly increases)
+		newVolume := float64(i+1) / float64(steps)
+		m.player.SetVolume(newVolume)
+		time.Sleep(sleepDuration)
+	}
+
+	// Ensure the volume is set to the maximum at the end
+	m.player.SetVolume(1)
+	// Resume playing if the player was paused
+	m.player.Play()
+	m.Paused = false
+	// Signal that the fade-in is complete
+	close(doneChan)
+}
 func (m *Music) FadeOut(duration time.Duration, doneChan chan struct{}) {
 	// Determine the amount of time to sleep between volume adjustments
 	const steps = 30
@@ -78,6 +100,7 @@ func (m *Music) FadeOut(duration time.Duration, doneChan chan struct{}) {
 	m.player.SetVolume(0)
 	// Stop the player if needed
 	m.player.Pause()
+	m.Paused = true
 	// Signal that the fade-out is complete
 	close(doneChan)
 }
