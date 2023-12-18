@@ -1,7 +1,6 @@
 package npc
 
 import (
-	"fmt"
 	"image"
 	"log"
 	"math"
@@ -22,6 +21,7 @@ const (
 
 type Behavior interface {
 	Execute(*NPC)
+	Value() []string
 }
 
 type Frame struct {
@@ -44,7 +44,7 @@ type Walker struct {
 	Timer     *Timer
 }
 type Talker struct {
-	Placeholder string
+	Dialogues []string
 }
 
 type NPC struct {
@@ -53,8 +53,9 @@ type NPC struct {
 	Direction        string
 	Frame            *Frame
 	X, Y             float64
-	Behaviors        []Behavior
+	Behaviors        map[string]Behavior
 	InteractionState InteractionState
+	Image            *ebiten.Image
 }
 
 func (n *NPC) Draw(screen *ebiten.Image, bgX, bgY float64) {
@@ -82,6 +83,10 @@ func (npc *NPC) Update() {
 func New(data *data.NPCData) *NPC {
 	sheets := loadSpriteSheets(data)
 	direction, sheet := GetAnySpriteSheet(sheets)
+	img, err := LoadSpriteSheet(data.Image)
+	if err != nil {
+		log.Fatal(err)
+	}
 	npc := &NPC{
 		Name:         data.Name,
 		SpriteSheets: sheets,
@@ -94,12 +99,13 @@ func New(data *data.NPCData) *NPC {
 		X:         data.X,
 		Y:         data.Y,
 		Behaviors: loadBehaviors(data),
+		Image:     img,
 	}
 	return npc
 }
 
-func loadBehaviors(data *data.NPCData) []Behavior {
-	behaviors := make([]Behavior, 0)
+func loadBehaviors(data *data.NPCData) map[string]Behavior {
+	behaviors := make(map[string]Behavior)
 	// Initialize behaviors
 	for _, behaviorData := range data.Behaviors {
 		switch behaviorData.Type {
@@ -123,16 +129,37 @@ func loadBehaviors(data *data.NPCData) []Behavior {
 						timer.StopDuration = int(stopDuration)
 					}
 				}
-
-				fmt.Println(timer)
-				behaviors = append(behaviors, &Walker{Direction: direction, Speed: speed, Timer: timer})
+				behaviors["walker"] = &Walker{Direction: direction, Speed: speed, Timer: timer}
 			}
-			// Add cases for other behaviors like "talker", etc.
+		case "talker":
+			// Extract the interface{} slice
+			if dialogueInterfaces, ok := behaviorData.Details["dialogues"].([]interface{}); ok {
+				var dialogues []string
+
+				// Iterate over the slice and convert each element to a string
+				for _, dialogueInterface := range dialogueInterfaces {
+					if dialogue, ok := dialogueInterface.(string); ok {
+						dialogues = append(dialogues, dialogue)
+					} else {
+						// Handle the error if the type assertion fails
+						log.Printf("Invalid dialogue type: %T\n", dialogueInterface)
+					}
+				}
+
+				// Create the Talker behavior with the extracted dialogues
+				behaviors["talker"] = &Talker{Dialogues: dialogues}
+			}
 		}
+
 	}
 	return behaviors
 }
-
+func (t *Talker) Value() []string {
+	return t.Dialogues
+}
+func (w *Walker) Value() []string {
+	return []string{}
+}
 func LoadNPCs(dataList []data.NPCData) map[string]*NPC {
 	npcs := make(map[string]*NPC)
 	for _, npc := range dataList {
@@ -170,8 +197,9 @@ func LoadSpriteSheet(path string) (*ebiten.Image, error) {
 
 	return img, err
 }
+
 func (t *Talker) Execute(npc *NPC) {
-	fmt.Println(t.Placeholder)
+	// No-op: Do nothing
 }
 func (w *Walker) Execute(npc *NPC) {
 	// Check for interaction key press to change the NPC's state

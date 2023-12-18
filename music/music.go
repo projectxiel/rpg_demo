@@ -1,7 +1,6 @@
 package music
 
 import (
-	"fmt"
 	"os"
 	"strings"
 	"time"
@@ -25,7 +24,6 @@ func (m *Music) LoadAudio(filePath string) error {
 	m.CurrentSong = filePath
 	parts := strings.Split(filePath, ".")
 
-	fmt.Println(parts[2])
 	var err error
 	m.audioFile, err = os.Open(filePath)
 	if err != nil {

@@ -1,9 +1,9 @@
 package game
 
 import (
-	"fmt"
 	"image/color"
 	"rpg_demo/collisions"
+	"rpg_demo/dialogue"
 	"rpg_demo/music"
 	"rpg_demo/player"
 	"rpg_demo/scene"
@@ -29,6 +29,7 @@ type Transition struct {
 type KeyPressed struct {
 	KeyP bool
 	KeyZ bool
+	KeyD bool
 }
 
 type Game struct {
@@ -40,6 +41,7 @@ type Game struct {
 	Transition          *Transition
 	Music               *music.Music
 	KeyPressedLastFrame KeyPressed
+	Dialogue            *dialogue.Dialogue
 }
 
 func New() *Game {
@@ -53,7 +55,8 @@ func New() *Game {
 			Alpha:     0.0,
 			FadeSpeed: 0.05,
 		},
-		Music: &music.Music{},
+		Music:    &music.Music{},
+		Dialogue: dialogue.New(),
 	}
 }
 
@@ -71,9 +74,33 @@ func (g *Game) Update() error {
 			return err
 		}
 		Scene.Update()
-		Scene.HandleNPCInteractions(g.Player, g.KeyPressedLastFrame.KeyZ)
+		Scene.HandleNPCInteractions(g.Player, g.KeyPressedLastFrame.KeyZ, g.Dialogue)
 		g.KeyPressedLastFrame.KeyZ = ebiten.IsKeyPressed(ebiten.KeyZ)
+		if ebiten.IsKeyPressed(ebiten.KeyD) && !g.KeyPressedLastFrame.KeyD {
+			if !g.Dialogue.IsOpen {
+				g.Dialogue.IsOpen = true
+				g.Dialogue.CurrentLine = 0
+				g.Dialogue.CharIndex = 0
+				g.Dialogue.Finished = false
+				g.Dialogue.TextLines = []string{"Hello Its time to test the dialogue out, this is sort of cool isn't it? Lets type out more things so that we can see if the wrapping is actually working or not.", "Theres nowhere to hide but in the ground... There's no one else there..."}
+			} else {
+				if g.Dialogue.Finished {
+					if g.Dialogue.IsLastLine() {
+						g.Dialogue.Image = nil
+					}
+					g.Dialogue.NextLine()
+				} else {
+					// Instantly display all characters in the current line
+					g.Dialogue.CharIndex = len(g.Dialogue.TextLines[g.Dialogue.CurrentLine])
+					g.Dialogue.Finished = true
+				}
+			}
 
+		}
+		if g.Dialogue.IsOpen && !g.Dialogue.Finished {
+			g.Dialogue.Update()
+		}
+		g.KeyPressedLastFrame.KeyD = ebiten.IsKeyPressed(ebiten.KeyD)
 	case TransitionState:
 		g.Transition.Alpha += g.Transition.FadeSpeed
 		if g.Transition.Alpha >= 1.0 {
@@ -106,6 +133,7 @@ func (g *Game) Draw(screen *ebiten.Image) {
 		Scene.DrawNPCs(screen)
 		g.Player.Draw(screen, Scene.Width, Scene.Height)
 		Scene.Draw(screen, Scene.Foreground, g.Player.X, g.Player.Y)
+		g.Dialogue.Draw(screen)
 	case TransitionState, NewSceneState:
 		Scene.Draw(screen, Scene.Background, g.Player.X, g.Player.Y)
 		Scene.DrawNPCs(screen)
@@ -139,14 +167,11 @@ func (g *Game) HandleMusic() {
 	}
 	g.KeyPressedLastFrame.KeyP = ebiten.IsKeyPressed(ebiten.KeyP)
 	if g.Music.IsEmpty() {
-		fmt.Println("Empty")
 		g.Music.LoadAudio("./assets/" + Scene.Music)
 		g.Music.PlayAudio()
 	} else if !g.Music.IsPlaying() && !g.Music.Paused {
 		g.Music.RewindMusic()
-		fmt.Println("looped")
 	} else if g.Music.CurrentSong != "./assets/"+Scene.Music && !g.Transition.Music {
-		fmt.Println("New Song")
 		g.Transition.Music = true
 		// Channel to signal when fade-out is complete
 		doneChan := make(chan struct{})

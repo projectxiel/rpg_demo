@@ -44,6 +44,7 @@ type NPCData struct {
 	FrameCount   int
 	X, Y         float64
 	Behaviors    []BehaviorData
+	Image        string
 }
 
 func LoadJsonFile(path string) *Data {

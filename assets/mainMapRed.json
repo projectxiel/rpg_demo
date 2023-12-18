@@ -266,12 +266,13 @@
                     "type": "talker",
                     "details": {
                         "dialogues": [
-                            "Hello there!",
-                            "Welcome to our world!"
+                            "Hello there idiot!",
+                            "Welcome to hell!"
                         ]
                     }
                 }
-            ]
+            ],
+            "image": "animBoy1.png"
         }
     ],
     "music": "Dramatic Intro-Loop.wav"
