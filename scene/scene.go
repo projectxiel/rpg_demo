@@ -1,7 +1,6 @@
 package scene
 
 import (
-	"image/color"
 	"log"
 	"math"
 	"rpg_demo/collisions"
@@ -67,8 +66,6 @@ func (s *Scene) Draw(screen, img *ebiten.Image, playerX, playerY float64) {
 	opts := &ebiten.DrawImageOptions{}
 	opts.GeoM.Translate(bgX, bgY)
 	screen.DrawImage(img, opts)
-	// drawCollisions(s, screen, bgX, bgY)
-	// drawDoors(s, screen, bgX, bgY)
 	s.X, s.Y = bgX, bgY
 }
 func (s *Scene) Update() {
@@ -85,8 +82,9 @@ func (s *Scene) HandleNPCInteractions(player *player.Player, PressedLastFrame bo
 	playerX, playerY := player.X-float64(player.Frame.Width)/2, player.Y-float64(player.Frame.Height)/2
 	for _, npc1 := range s.NPCs {
 		if npc1.Near(playerX, playerY) {
-			if ebiten.IsKeyPressed(ebiten.KeyZ) && !PressedLastFrame {
+			if ebiten.IsKeyPressed(ebiten.KeyZ) && !PressedLastFrame && npc1.IsTalker() {
 				if npc1.InteractionState == npc.NoInteraction {
+					npc1.ChangeDirection(playerX, playerY)
 					npc1.InteractionState = npc.PlayerInteracted
 					player.CanMove = false // Disallow player movement
 				} else if npc1.InteractionState == npc.WaitingForPlayerToResume && dial.Finished && dial.IsLastLine() {
@@ -97,10 +95,8 @@ func (s *Scene) HandleNPCInteractions(player *player.Player, PressedLastFrame bo
 
 				if !dial.IsOpen {
 					dial.Image = npc1.Image
-					dial.IsOpen = true
-					dial.CurrentLine = 0
-					dial.CharIndex = 0
-					dial.Finished = false
+					dial.Speaker = npc1.Name
+					dial.OpenAndReset()
 					dial.TextLines = npc1.Behaviors["talker"].Value()
 				} else {
 					if dial.Finished {
@@ -113,42 +109,5 @@ func (s *Scene) HandleNPCInteractions(player *player.Player, PressedLastFrame bo
 				}
 			}
 		}
-	}
-}
-func DrawCollisions(s *Scene, screen *ebiten.Image, bgX, bgY float64) {
-	for _, obstacle := range s.Collisions.Obstacles {
-		// Translate the obstacle's position based on the background position
-		obstacleOpts := &ebiten.DrawImageOptions{}
-		obstacleImage := ebiten.NewImage(obstacle.Dx(), obstacle.Dy())
-		obstacleColor := color.RGBA{255, 0, 0, 80} // Semi-transparent red color
-		obstacleOpts.GeoM.Translate(bgX+float64(obstacle.Min.X), bgY+float64(obstacle.Min.Y))
-		// Create a colored rectangle to represent the obstacle
-
-		obstacleImage.Fill(obstacleColor)
-
-		// Draw the obstacle image
-		screen.DrawImage(obstacleImage, obstacleOpts)
-
-		// Dispose of the obstacle image to avoid memory leaks if you're done with it
-		obstacleImage.Dispose()
-	}
-}
-
-func DrawDoors(s *Scene, screen *ebiten.Image, bgX, bgY float64) {
-	for _, door := range s.Collisions.Doors {
-		// Translate the obstacle's position based on the background position
-		doorOpts := &ebiten.DrawImageOptions{}
-		doorImage := ebiten.NewImage(door.Rect.Dx(), door.Rect.Dy())
-		doorColor := color.RGBA{0, 0, 255, 80} // Semi-transparent blue color
-		doorOpts.GeoM.Translate(bgX+float64(door.Rect.Min.X), bgY+float64(door.Rect.Min.Y))
-		// Create a colored rectangle to represent the door
-
-		doorImage.Fill(doorColor)
-
-		// Draw the door image
-		screen.DrawImage(doorImage, doorOpts)
-
-		// Dispose of the door image to avoid memory leaks if you're done with it
-		doorImage.Dispose()
 	}
 }

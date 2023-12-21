@@ -3,6 +3,7 @@ package dialogue
 import (
 	"image/color"
 	"log"
+	"math"
 	"strings"
 
 	"github.com/hajimehoshi/ebiten/v2"
@@ -23,6 +24,7 @@ type Dialogue struct {
 	Finished          bool
 	Font              font.Face
 	Image             *ebiten.Image
+	Speaker           string
 }
 
 func New() *Dialogue {
@@ -32,8 +34,7 @@ func New() *Dialogue {
 	}
 	d := &Dialogue{
 		TextLines:     []string{""},
-		FramesPerChar: 2, // For example, one character every 2 frames
-		IsOpen:        false,
+		FramesPerChar: 2, //One character every 2 frames
 		CurrentLine:   0,
 		CharIndex:     0,
 		Font:          font,
@@ -86,15 +87,31 @@ func (d *Dialogue) Draw(screen *ebiten.Image) {
 	opts := &ebiten.DrawImageOptions{}
 	opts.GeoM.Translate(float64(boxX), float64(boxY))
 	screen.DrawImage(dialogueBox, opts)
+	dialogueBox.Dispose()
 	var err error
+	scale := 0.165
 	if d.Image != nil {
 		ImageOpts := &ebiten.DrawImageOptions{}
-
-		ImageOpts.GeoM.Scale(0.165, 0.165)
+		ImageOpts.GeoM.Scale(scale, scale)
 		ImageOpts.GeoM.Translate(float64(boxX), float64(boxY))
 		screen.DrawImage(d.Image, ImageOpts)
 		if err != nil {
 			log.Fatal(err)
+		}
+		if d.Speaker != "" {
+			scaledWidth := float64(d.Image.Bounds().Dx()) * scale
+			boxWidth := int(math.Round(scaledWidth))
+			boxHeight := 40
+			bounds := font.MeasureString(d.Font, d.Speaker)
+			textWidth := bounds.Ceil()
+			startX := boxX + (boxWidth-textWidth)/2
+			nameBox := ebiten.NewImage(boxWidth, boxHeight)
+			nameBox.Fill(color.Black)
+			opts := &ebiten.DrawImageOptions{}
+			opts.GeoM.Translate(float64(boxX), float64(boxY+170-boxHeight))
+			opts.ColorScale.Scale(1, 1, 1, 0.60)
+			screen.DrawImage(nameBox, opts)
+			text.Draw(screen, d.Speaker, d.Font, startX, boxY+170-boxHeight+30, color.White)
 		}
 	}
 
@@ -184,4 +201,11 @@ func loadFontFace() (font.Face, error) {
 	}
 
 	return face, nil
+}
+
+func (d *Dialogue) OpenAndReset() {
+	d.IsOpen = true
+	d.CharIndex = 0
+	d.CurrentLine = 0
+	d.Finished = false
 }

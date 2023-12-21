@@ -75,6 +75,7 @@ func (n *NPC) Draw(screen *ebiten.Image, bgX, bgY float64) {
 	opts.GeoM.Translate(bgX+n.X, bgY+n.Y)
 	screen.DrawImage(frame, opts)
 }
+
 func (npc *NPC) Update() {
 	for _, behavior := range npc.Behaviors {
 		behavior.Execute(npc)
@@ -199,15 +200,40 @@ func LoadSpriteSheet(path string) (*ebiten.Image, error) {
 }
 
 func (t *Talker) Execute(npc *NPC) {
-	// No-op: Do nothing
-}
-func (w *Walker) Execute(npc *NPC) {
 	// Check for interaction key press to change the NPC's state
 	if ebiten.IsKeyPressed(ebiten.KeyZ) {
 		if npc.InteractionState == PlayerInteracted {
 			npc.InteractionState = WaitingForPlayerToResume
 		}
 	}
+}
+
+func (npc *NPC) ChangeDirection(playerX, playerY float64) {
+	var direction string
+	const verticalThreshold = 30
+	verticalDistance := math.Abs(playerY - npc.Y)
+	log.Println(verticalDistance)
+	// horizontalDistance := math.Abs(playerX - npc.X) unused for now
+
+	if verticalDistance >= verticalThreshold {
+		if playerY < npc.Y {
+			direction = "up" // Player is above the NPC
+		} else if playerY > npc.Y {
+			direction = "down" // Player is below the NPC
+		}
+	} else {
+		if playerX < npc.X {
+			direction = "left" // Player is to the right of the NPC
+		} else if playerX > npc.X {
+			direction = "right" // Player is to the left of the NPC
+		}
+	}
+
+	if _, ok := npc.SpriteSheets[direction]; ok {
+		npc.Direction = direction
+	}
+}
+func (w *Walker) Execute(npc *NPC) {
 	// NPC movement logic
 	if npc.InteractionState == NoInteraction {
 		if w.Timer.IsStopped {
@@ -258,20 +284,14 @@ func (w *Walker) Move(npc *NPC) {
 	npc.Frame.TickCount++
 }
 
-func (npc *NPC) IsTalkerAndWalker() bool {
-	hasWalker := false
+func (npc *NPC) IsTalker() bool {
 	hasTalker := false
 
-	for _, behavior := range npc.Behaviors {
-		switch behavior.(type) {
-		case *Walker:
-			hasWalker = true
-		case *Talker:
-			hasTalker = true
-		}
+	if _, ok := npc.Behaviors["talker"]; ok {
+		hasTalker = true
 	}
 
-	return hasWalker && hasTalker
+	return hasTalker
 }
 
 func (npc *NPC) Near(playerX, playerY float64) bool {

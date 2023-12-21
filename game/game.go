@@ -78,10 +78,7 @@ func (g *Game) Update() error {
 		g.KeyPressedLastFrame.KeyZ = ebiten.IsKeyPressed(ebiten.KeyZ)
 		if ebiten.IsKeyPressed(ebiten.KeyD) && !g.KeyPressedLastFrame.KeyD {
 			if !g.Dialogue.IsOpen {
-				g.Dialogue.IsOpen = true
-				g.Dialogue.CurrentLine = 0
-				g.Dialogue.CharIndex = 0
-				g.Dialogue.Finished = false
+				g.Dialogue.OpenAndReset()
 				g.Dialogue.TextLines = []string{"Hello Its time to test the dialogue out, this is sort of cool isn't it? Lets type out more things so that we can see if the wrapping is actually working or not.", "Theres nowhere to hide but in the ground... There's no one else there..."}
 			} else {
 				if g.Dialogue.Finished {
@@ -97,10 +94,11 @@ func (g *Game) Update() error {
 			}
 
 		}
+		g.KeyPressedLastFrame.KeyD = ebiten.IsKeyPressed(ebiten.KeyD)
 		if g.Dialogue.IsOpen && !g.Dialogue.Finished {
 			g.Dialogue.Update()
 		}
-		g.KeyPressedLastFrame.KeyD = ebiten.IsKeyPressed(ebiten.KeyD)
+
 	case TransitionState:
 		g.Transition.Alpha += g.Transition.FadeSpeed
 		if g.Transition.Alpha >= 1.0 {

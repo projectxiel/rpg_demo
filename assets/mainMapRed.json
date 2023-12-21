@@ -273,6 +273,30 @@
                 }
             ],
             "image": "animBoy1.png"
+        },
+        {
+            "name": "Kenneth",
+            "spriteSheets": {
+                "left": "playerRightMaroon.png",
+                "right": "playerRightMaroon.png",
+                "up": "playerUpMaroon.png",
+                "down": "playerDownMaroon.png"
+            },
+            "frameCount": 4,
+            "x": 2000,
+            "y": 950,
+            "behaviors": [
+                {
+                    "type": "talker",
+                    "details": {
+                        "dialogues": [
+                            "I hate walking",
+                            "What? You like walking!?? Get out of here. I don't care!"
+                        ]
+                    }
+                }
+            ],
+            "image": "animBoy2.png"
         }
     ],
     "music": "Dramatic Intro-Loop.wav"
