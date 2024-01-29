@@ -1,0 +1,22 @@
+package shared
+
+type GameState int
+
+const (
+	PlayState GameState = iota
+	TransitionState
+	NewSceneState
+	CutSceneState
+)
+
+type Transition struct {
+	Alpha     float64
+	FadeSpeed float64
+	Music     bool
+}
+
+type KeyPressed struct {
+	KeyP bool
+	KeyZ bool
+	KeyD bool
+}

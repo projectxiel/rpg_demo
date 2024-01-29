@@ -4,16 +4,12 @@ import (
 	"image"
 	"log"
 	"rpg_demo/collisions"
+	"rpg_demo/shared"
 
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/ebitenutil"
 	"golang.org/x/text/cases"
 	"golang.org/x/text/language"
-)
-
-const (
-	PlayState = iota
-	TransitionState
 )
 
 type Frame struct {
@@ -94,7 +90,7 @@ func (p *Player) Draw(screen *ebiten.Image, WorldWidth, WorldHeight float64) {
 	screen.DrawImage(frame, opts)
 }
 
-func (p *Player) Update(sceneCollisions collisions.Collisions, onDoorChange func(*collisions.Door), onStateChange func(newState int)) error {
+func (p *Player) Update(sceneCollisions collisions.Collisions, onDoorChange func(*collisions.Door), onStateChange func(newState shared.GameState)) error {
 	var newX, newY float64
 	moving := false
 	if p.CanMove {
@@ -129,7 +125,7 @@ func (p *Player) Update(sceneCollisions collisions.Collisions, onDoorChange func
 		colliding, door := p.CollidingWithDoor(sceneCollisions.Doors, newX, newY)
 		if p.Colliding(sceneCollisions.Obstacles, newX, newY) && colliding {
 			onDoorChange(door)
-			onStateChange(TransitionState)
+			onStateChange(shared.TransitionState)
 		}
 		// Increment the tick count
 		p.Frame.TickCount++
