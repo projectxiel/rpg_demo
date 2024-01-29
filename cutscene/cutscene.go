@@ -5,6 +5,7 @@ import (
 	"rpg_demo/dialogue"
 	"rpg_demo/npc"
 	"rpg_demo/player"
+	"rpg_demo/shared"
 
 	"github.com/hajimehoshi/ebiten/v2"
 )
@@ -26,17 +27,6 @@ const (
 	ChangeMusic
 )
 
-type Transition struct {
-	Alpha     float64
-	FadeSpeed float64
-	Music     bool
-}
-
-type KeyPressed struct {
-	KeyP bool
-	KeyZ bool
-	KeyD bool
-}
 type CutsceneAction struct {
 	ActionType   CutsceneActionType
 	Target       interface{}
@@ -59,7 +49,7 @@ func (c *Cutscene) Start() {
 	c.ActiveActions = make(map[int]bool)
 }
 
-func (c *Cutscene) Update(t *Transition, k KeyPressed) {
+func (c *Cutscene) Update(t *shared.Transition, k shared.KeyPressed) {
 	if !c.IsPlaying {
 		return
 	}
@@ -94,7 +84,7 @@ func (c *Cutscene) Update(t *Transition, k KeyPressed) {
 	}
 }
 
-func (c *Cutscene) processAction(action CutsceneAction, t *Transition, k KeyPressed) bool {
+func (c *Cutscene) processAction(action CutsceneAction, t *shared.Transition, k shared.KeyPressed) bool {
 	switch action.ActionType {
 	case MoveNPC:
 		cnpc := action.Target.(*npc.NPC)

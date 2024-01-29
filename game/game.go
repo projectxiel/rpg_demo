@@ -85,7 +85,7 @@ func (g *Game) Update() error {
 		}
 	case shared.CutSceneState:
 		if g.CutScene.IsPlaying {
-			g.CutScene.Update((*cutscene.Transition)(g.Transition), cutscene.KeyPressed(g.KeyPressedLastFrame))
+			g.CutScene.Update(g.Transition, g.KeyPressedLastFrame)
 		} else {
 			g.State = shared.PlayState
 		}
