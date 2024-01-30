@@ -12,6 +12,7 @@ const (
 type Transition struct {
 	Alpha     float64
 	FadeSpeed float64
+	Timer     int
 	Music     bool
 }
 

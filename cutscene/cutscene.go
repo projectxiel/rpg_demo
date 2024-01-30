@@ -3,9 +3,11 @@ package cutscene
 import (
 	"fmt"
 	"rpg_demo/dialogue"
+	"rpg_demo/music"
 	"rpg_demo/npc"
 	"rpg_demo/player"
 	"rpg_demo/shared"
+	"time"
 
 	"github.com/hajimehoshi/ebiten/v2"
 )
@@ -25,6 +27,7 @@ const (
 	ChangeScene
 	StopMusic
 	ChangeMusic
+	Wait
 )
 
 type CutsceneAction struct {
@@ -158,6 +161,48 @@ func (c *Cutscene) processAction(action CutsceneAction, t *shared.Transition, k 
 			d.Update()
 			// return d.Finished
 		}
+	case ChangeScene:
+		s := action.Target.(*string)
+		newScene := action.Data.(string)
+		*s = newScene
+		return true
+	case StopMusic:
+		m := action.Target.(*music.Music)
+		ch := make(chan struct{})
+		go m.FadeOut(time.Millisecond*500, ch)
+		m.Paused = true
+		return true
+	case ChangeMusic:
+		m := action.Target.(*music.Music)
+		newSong := action.Data.(string)
+		t.Music = true
+		// Channel to signal when fade-out is complete
+		doneChan := make(chan struct{})
+
+		// Start fade-out in a goroutine
+		go m.FadeOut(time.Second, doneChan)
+
+		// Wait for the fade-out to complete in another goroutine
+		go func() {
+			<-doneChan // Wait for fade-out to complete
+			// Load and play the new audio
+			// Safe closure and loading of new audio
+			if m.IsPlaying() || m.Paused {
+				m.CloseAudio() // Ensure the current audio is closed
+			}
+			m.LoadAudio("./assets/" + newSong)
+			m.PlayAudio()
+			t.Music = false
+		}()
+		return true
+	case Wait:
+		t.Timer += 1
+		target := action.Data.(int)
+		if t.Timer == target {
+			t.Timer = 0
+			return true
+		}
+		fmt.Println(t.Timer)
 	}
 	return false
 }

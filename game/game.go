@@ -159,7 +159,7 @@ func (g *Game) HandleMusic() {
 		g.Music.PlayAudio()
 	} else if !g.Music.IsPlaying() && !g.Music.Paused {
 		g.Music.RewindMusic()
-	} else if g.Music.CurrentSong != "./assets/"+Scene.Music && !g.Transition.Music {
+	} else if g.Music.CurrentSong != "./assets/"+Scene.Music && !g.Transition.Music && g.State != shared.CutSceneState {
 		g.Transition.Music = true
 		// Channel to signal when fade-out is complete
 		doneChan := make(chan struct{})
@@ -186,56 +186,16 @@ func (g *Game) HandleMusic() {
 func createExampleCutscene(g *Game) cutscene.Cutscene {
 	return cutscene.Cutscene{
 		Actions: []cutscene.CutsceneAction{
+
 			{
-				ActionType:   cutscene.FadeOut,
-				Data:         0.01,
+				ActionType:   cutscene.ChangeMusic,
+				Target:       g.Music,
+				Data:         "Ruins.mp3",
 				WaitPrevious: false,
 			},
 			{
-				ActionType:   cutscene.TeleportPlayer,
-				Target:       g.Player,
-				Data:         cutscene.Vector2D{X: 0 + float64(g.Player.Frame.Width)/2, Y: 0 + float64(g.Player.Frame.Height)/2},
-				WaitPrevious: true,
-			},
-			{
-				ActionType:   cutscene.TeleportNPC,
-				Target:       g.Scenes[g.CurrentScene].NPCs["Bryan"],
-				Data:         cutscene.Vector2D{X: 0, Y: 0},
-				WaitPrevious: true,
-			},
-			{
-				ActionType:   cutscene.FadeIn,
-				Data:         0.01,
-				WaitPrevious: true,
-			},
-			{
-				ActionType:   cutscene.MovePlayer,
-				Target:       g.Player,
-				Data:         cutscene.Vector2D{X: 150 + float64(g.Player.Frame.Width)/2, Y: 200 + float64(g.Player.Frame.Height)/2}, // Target position for player
-				WaitPrevious: true,
-			},
-			{
-				ActionType:   cutscene.MoveNPC,
-				Target:       g.Scenes[g.CurrentScene].NPCs["Bryan"],
-				Data:         cutscene.Vector2D{X: 200, Y: 200}, // Target position for NPC
-				WaitPrevious: false,
-			},
-			{
-				ActionType:   cutscene.TurnNPC,
-				Target:       g.Scenes[g.CurrentScene].NPCs["Bryan"],
-				Data:         "left",
-				WaitPrevious: true,
-			},
-			{
-				ActionType:   cutscene.TurnPlayer,
-				Target:       g.Player,
-				Data:         "right",
-				WaitPrevious: true,
-			},
-			{
-				ActionType:   cutscene.ShowDialogue,
-				Target:       g.Dialogue,
-				Data:         []string{"This is our first Scene.", "Pretty Cool huh?"},
+				ActionType:   cutscene.Wait,
+				Data:         60 * 10,
 				WaitPrevious: true,
 			},
 		},
