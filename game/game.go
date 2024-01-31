@@ -62,7 +62,7 @@ func (g *Game) Update() error {
 		g.KeyPressedLastFrame.KeyZ = ebiten.IsKeyPressed(ebiten.KeyZ)
 		if ebiten.IsKeyPressed(ebiten.KeyD) && !g.KeyPressedLastFrame.KeyD {
 			g.CutScene = Scene.Cutscenes["exampleCutscene"]
-			processCutscene(g)
+			g.processCutscene()
 			fmt.Println(g.CutScene)
 			g.CutScene.Start()
 			g.State = shared.CutSceneState
@@ -185,7 +185,7 @@ func (g *Game) HandleMusic() {
 
 }
 
-func processCutscene(g *Game) {
+func (g *Game) processCutscene() {
 	for i := range g.CutScene.Actions {
 		target := g.resolveTarget(g.CutScene.Actions[i].Target)
 		data := g.resolveData(g.CutScene.Actions[i].Data)
@@ -200,7 +200,7 @@ func (g *Game) resolveTarget(target any) interface{} {
 		id, ok := target.(string)
 		if !ok {
 			// Handle the case where target is not a string
-			return nil
+			return target
 		}
 		// fmt.Println(id)
 		switch id {
@@ -208,6 +208,10 @@ func (g *Game) resolveTarget(target any) interface{} {
 			return g.Player
 		case "dialogue":
 			return g.Dialogue
+		case "music":
+			return g.Music
+		case "scene":
+			return &g.CurrentScene
 		default:
 			npc1 := g.Scenes[g.CurrentScene].NPCs[id]
 			// fmt.Println("Made it")
@@ -243,6 +247,8 @@ func (g *Game) resolveData(actionData any) interface{} {
 			fmt.Println("Value:", t)
 			return t
 		}
+	} else {
+		fmt.Println("is Nil")
 	}
 	return nil
 }

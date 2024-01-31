@@ -247,7 +247,13 @@ func (c *Cutscene) processAction(action CutsceneAction, t *shared.Transition, k 
 		return true
 	case Wait:
 		t.Timer += 1
-		target := action.Data.(int)
+		targetFloat, ok := action.Data.(float64) // Assert to float64 first
+		if !ok {
+			// Handle the error if the conversion fails
+			fmt.Println("Error: expected float64 for timer target")
+			return false
+		}
+		target := int(targetFloat) // Convert float64 to int
 		if t.Timer == target {
 			t.Timer = 0
 			return true
