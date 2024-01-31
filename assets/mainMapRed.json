@@ -299,5 +299,79 @@
             "image": "animBoy2.png"
         }
     ],
+    "cutscenes": [
+        {
+            "id": "exampleCutscene",
+            "actions": [
+                {
+                    "actionType": "FadeOut",
+                    "data": 0.01,
+                    "waitPrevious": false
+                },
+                {
+                    "actionType": "TeleportPlayer",
+                    "targetId": "player",
+                    "data": {
+                        "x": 0,
+                        "y": 0
+                    },
+                    "waitPrevious": true
+                },
+                {
+                    "actionType": "TeleportNPC",
+                    "targetId": "Bryan",
+                    "data": {
+                        "x": 0,
+                        "y": 0
+                    },
+                    "waitPrevious": true
+                },
+                {
+                    "actionType": "FadeIn",
+                    "data": 0.01,
+                    "waitPrevious": true
+                },
+                {
+                    "actionType": "MovePlayer",
+                    "targetId": "player",
+                    "data": {
+                        "x": 150,
+                        "y": 200
+                    },
+                    "waitPrevious": true
+                },
+                {
+                    "actionType": "MoveNPC",
+                    "targetId": "Bryan",
+                    "data": {
+                        "x": 200,
+                        "y": 200
+                    },
+                    "waitPrevious": false
+                },
+                {
+                    "actionType": "TurnNPC",
+                    "targetId": "Bryan",
+                    "data": "left",
+                    "waitPrevious": true
+                },
+                {
+                    "actionType": "TurnPlayer",
+                    "targetId": "player",
+                    "data": "right",
+                    "waitPrevious": true
+                },
+                {
+                    "actionType": "ShowDialogue",
+                    "targetId": "dialogue",
+                    "data": [
+                        "This is our first Scene.",
+                        "Pretty Cool huh?"
+                    ],
+                    "waitPrevious": true
+                }
+            ]
+        }
+    ],
     "music": "Dramatic Intro-Loop.wav"
 }

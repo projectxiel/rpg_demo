@@ -1,6 +1,7 @@
 package game
 
 import (
+	"fmt"
 	"image/color"
 	"rpg_demo/collisions"
 	"rpg_demo/cutscene"
@@ -60,8 +61,9 @@ func (g *Game) Update() error {
 		Scene.HandleNPCInteractions(g.Player, g.KeyPressedLastFrame.KeyZ, g.Dialogue)
 		g.KeyPressedLastFrame.KeyZ = ebiten.IsKeyPressed(ebiten.KeyZ)
 		if ebiten.IsKeyPressed(ebiten.KeyD) && !g.KeyPressedLastFrame.KeyD {
-			c := createExampleCutscene(g)
-			g.CutScene = &c
+			g.CutScene = Scene.Cutscenes["exampleCutscene"]
+			processCutscene(g)
+			fmt.Println(g.CutScene)
 			g.CutScene.Start()
 			g.State = shared.CutSceneState
 		}
@@ -183,21 +185,64 @@ func (g *Game) HandleMusic() {
 
 }
 
-func createExampleCutscene(g *Game) cutscene.Cutscene {
-	return cutscene.Cutscene{
-		Actions: []cutscene.CutsceneAction{
-
-			{
-				ActionType:   cutscene.ChangeMusic,
-				Target:       g.Music,
-				Data:         "Ruins.mp3",
-				WaitPrevious: false,
-			},
-			{
-				ActionType:   cutscene.Wait,
-				Data:         60 * 10,
-				WaitPrevious: true,
-			},
-		},
+func processCutscene(g *Game) {
+	for i := range g.CutScene.Actions {
+		target := g.resolveTarget(g.CutScene.Actions[i].Target)
+		data := g.resolveData(g.CutScene.Actions[i].Data)
+		// fmt.Println(target)
+		g.CutScene.Actions[i].Target = target
+		g.CutScene.Actions[i].Data = data
 	}
+}
+
+func (g *Game) resolveTarget(target any) interface{} {
+	if target != nil {
+		id, ok := target.(string)
+		if !ok {
+			// Handle the case where target is not a string
+			return nil
+		}
+		// fmt.Println(id)
+		switch id {
+		case "player":
+			return g.Player
+		case "dialogue":
+			return g.Dialogue
+		default:
+			npc1 := g.Scenes[g.CurrentScene].NPCs[id]
+			// fmt.Println("Made it")
+			// fmt.Println(npc1)
+			return npc1
+		}
+	}
+	return nil
+}
+
+func (g *Game) resolveData(actionData any) interface{} {
+	if actionData != nil {
+		switch t := actionData.(type) {
+		case map[string]interface{}:
+			fmt.Println("Map:", t)
+			return cutscene.Vector2D{
+				X: t["x"].(float64),
+				Y: t["y"].(float64),
+			}
+		case []interface{}:
+			var strings []string
+			for _, item := range t {
+				str, ok := item.(string)
+				if !ok {
+					// Handle the error or skip the item
+					continue
+				}
+				strings = append(strings, str)
+			}
+			fmt.Println("Strings:", strings)
+			return strings
+		default:
+			fmt.Println("Value:", t)
+			return t
+		}
+	}
+	return nil
 }

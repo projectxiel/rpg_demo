@@ -12,6 +12,7 @@ type Data struct {
 	Diagonals []DiagonalObstacleData
 	Doors     []DoorData
 	NPCs      []NPCData
+	Cutscenes []CutsceneData
 	Music     string
 }
 
@@ -45,6 +46,16 @@ type NPCData struct {
 	X, Y         float64
 	Behaviors    []BehaviorData
 	Image        string
+}
+type CutsceneAction struct {
+	ActionType   string
+	TargetID     string
+	Data         interface{}
+	WaitPrevious bool
+}
+type CutsceneData struct {
+	ID      string
+	Actions []CutsceneAction
 }
 
 func LoadJsonFile(path string) *Data {

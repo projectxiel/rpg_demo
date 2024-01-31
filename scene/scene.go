@@ -4,6 +4,7 @@ import (
 	"log"
 	"math"
 	"rpg_demo/collisions"
+	"rpg_demo/cutscene"
 	"rpg_demo/data"
 	"rpg_demo/dialogue"
 	"rpg_demo/npc"
@@ -21,6 +22,7 @@ type Scene struct {
 	Collisions collisions.Collisions
 	Music      string
 	NPCs       map[string]*npc.NPC
+	Cutscenes  map[string]*cutscene.Cutscene
 	X, Y       float64
 }
 
@@ -50,6 +52,7 @@ func New(name string) *Scene {
 		Collisions: collisions.New(data),
 		Music:      data.Music,
 		NPCs:       npc.LoadNPCs(data.NPCs),
+		Cutscenes:  cutscene.LoadCutscenes(data.Cutscenes),
 	}
 }
 

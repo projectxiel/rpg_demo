@@ -2,6 +2,7 @@ package cutscene
 
 import (
 	"fmt"
+	"rpg_demo/data"
 	"rpg_demo/dialogue"
 	"rpg_demo/music"
 	"rpg_demo/npc"
@@ -30,6 +31,23 @@ const (
 	Wait
 )
 
+// actionMap maps strings to CutsceneActionType constants
+var actionMap = map[string]CutsceneActionType{
+	"MovePlayer":     MovePlayer,
+	"MoveNPC":        MoveNPC,
+	"ShowDialogue":   ShowDialogue,
+	"TeleportNPC":    TeleportNPC,
+	"TeleportPlayer": TeleportPlayer,
+	"TurnNPC":        TurnNPC,
+	"TurnPlayer":     TurnPlayer,
+	"FadeIn":         FadeIn,
+	"FadeOut":        FadeOut,
+	"ChangeScene":    ChangeScene,
+	"StopMusic":      StopMusic,
+	"ChangeMusic":    ChangeMusic,
+	"Wait":           Wait,
+}
+
 type CutsceneAction struct {
 	ActionType   CutsceneActionType
 	Target       interface{}
@@ -44,6 +62,36 @@ type Cutscene struct {
 	Current       int
 	ActiveActions map[int]bool // Tracks active actions by their index
 	IsPlaying     bool
+}
+
+func LoadCutscenes(dataList []data.CutsceneData) map[string]*Cutscene {
+	cutscenes := make(map[string]*Cutscene)
+	for _, cutscene := range dataList {
+		cutscenes[cutscene.ID] = New(&cutscene)
+	}
+	return cutscenes
+}
+
+func New(data *data.CutsceneData) *Cutscene {
+	var actions []CutsceneAction
+
+	for _, actionData := range data.Actions {
+		action := CutsceneAction{
+			ActionType:   getActionType(actionData.ActionType),
+			WaitPrevious: actionData.WaitPrevious,
+			Target:       actionData.TargetID,
+			Data:         actionData.Data,
+		}
+		switch action.ActionType {
+		case FadeOut:
+			action.Data = actionData.Data
+		}
+		actions = append(actions, action)
+	}
+	cutscene := &Cutscene{
+		Actions: actions,
+	}
+	return cutscene
 }
 
 func (c *Cutscene) Start() {
@@ -96,6 +144,8 @@ func (c *Cutscene) processAction(action CutsceneAction, t *shared.Transition, k 
 	case MovePlayer:
 		p := action.Target.(*player.Player)
 		destination := action.Data.(Vector2D)
+		destination.X = destination.X + float64(p.Frame.Width)/2
+		destination.Y = destination.Y + float64(p.Frame.Height)/2
 		return moveTowards(p, destination)
 	case FadeOut:
 		t.Alpha += action.Data.(float64)
@@ -117,8 +167,8 @@ func (c *Cutscene) processAction(action CutsceneAction, t *shared.Transition, k 
 	case TeleportPlayer:
 		p := action.Target.(*player.Player)
 		destination := action.Data.(Vector2D)
-		p.X = destination.X
-		p.Y = destination.Y
+		p.X = destination.X + float64(p.Frame.Width)/2
+		p.Y = destination.Y + float64(p.Frame.Height)/2
 		return true
 	case TeleportNPC:
 		cnpc := action.Target.(*npc.NPC)
@@ -266,4 +316,14 @@ func moveTowards(entity interface{}, target Vector2D) bool {
 	}
 
 	return res
+}
+
+// getActionType returns the CutsceneActionType for a given string
+func getActionType(actionType string) CutsceneActionType {
+	if val, ok := actionMap[actionType]; ok {
+		return val
+	}
+	// Handle the case where the actionType is not found
+	fmt.Println("Invalid action type:", actionType)
+	return -1
 }
