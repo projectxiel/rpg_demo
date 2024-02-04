@@ -12,6 +12,14 @@ import (
 	"golang.org/x/text/language"
 )
 
+type Ability int
+
+const (
+	None Ability = iota
+	GhostMode
+	StopTime
+)
+
 type Frame struct {
 	Height    int
 	Width     int
@@ -26,6 +34,7 @@ type Player struct {
 	Frame        *Frame
 	Speed        float64
 	X, Y         float64
+	Ability      Ability
 	CanMove      bool
 }
 
@@ -41,6 +50,7 @@ func New() *Player {
 		Direction: "down",
 		X:         1000,
 		Y:         1000,
+		Ability:   None,
 		CanMove:   true,
 	}
 }
@@ -86,6 +96,10 @@ func (p *Player) Draw(screen *ebiten.Image, WorldWidth, WorldHeight float64) {
 			charY = ScreenHeight - (WorldHeight - p.Y)
 		}
 	}
+	if p.Ability == GhostMode {
+		var alpha float32 = 0.5
+		opts.ColorScale.Scale(1, 1, 1, alpha)
+	}
 	opts.GeoM.Translate(charX-float64(p.Frame.Width)/2, charY-float64(p.Frame.Height)/2)
 	screen.DrawImage(frame, opts)
 }
@@ -116,9 +130,13 @@ func (p *Player) Update(sceneCollisions collisions.Collisions, onDoorChange func
 		p.X = 1000
 		p.Y = 1000
 	}
+	p.Ability = None
+	if ebiten.IsKeyPressed(ebiten.KeyC) {
+		p.Ability = GhostMode
+	}
 	if moving {
 		newX, newY = p.FuturePosition(p.Direction)
-		if !p.Colliding(sceneCollisions.Obstacles, newX, newY) {
+		if !p.Colliding(sceneCollisions.Obstacles, newX, newY) || p.Ability == GhostMode {
 			p.X = newX
 			p.Y = newY
 		}
