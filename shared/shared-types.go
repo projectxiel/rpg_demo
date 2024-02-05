@@ -7,6 +7,7 @@ const (
 	TransitionState
 	NewSceneState
 	CutSceneState
+	TimeStopped
 )
 
 type Transition struct {

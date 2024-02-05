@@ -56,11 +56,11 @@ func New(name string) *Scene {
 	}
 }
 
-func (s *Scene) Draw(screen, img *ebiten.Image, playerX, playerY float64) {
+func (s *Scene) Draw(screen, img *ebiten.Image, p *player.Player) {
 	ScreenWidth := float64(screen.Bounds().Dx())
 	ScreenHeight := float64(screen.Bounds().Dy())
 
-	bgX, bgY := -playerX+ScreenWidth/2, -playerY+ScreenHeight/2
+	bgX, bgY := -p.X+ScreenWidth/2, -p.Y+ScreenHeight/2
 
 	// Constrain background position to world boundaries
 	bgX = math.Min(math.Max(bgX, -s.Width+ScreenWidth), 0)
@@ -68,6 +68,9 @@ func (s *Scene) Draw(screen, img *ebiten.Image, playerX, playerY float64) {
 
 	opts := &ebiten.DrawImageOptions{}
 	opts.GeoM.Translate(bgX, bgY)
+	if p.Ability == player.StopTime {
+		opts.ColorScale.Scale(.5, .5, .5, 1)
+	}
 	screen.DrawImage(img, opts)
 	s.X, s.Y = bgX, bgY
 }

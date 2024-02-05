@@ -47,6 +47,9 @@ func New() *Game {
 func (g *Game) Update() error {
 	Scene := g.Scenes[g.CurrentScene]
 	g.HandleMusic()
+	if g.Player.Ability != player.StopTime && g.State == shared.TimeStopped {
+		g.State = shared.PlayState
+	}
 	switch g.State {
 	case shared.PlayState:
 		err := g.Player.Update(Scene.Collisions, func(door *collisions.Door) {
@@ -68,7 +71,11 @@ func (g *Game) Update() error {
 			g.State = shared.CutSceneState
 		}
 		g.KeyPressedLastFrame.KeyD = ebiten.IsKeyPressed(ebiten.KeyD)
-
+		if g.Player.Ability == player.StopTime {
+			g.State = shared.TimeStopped
+		}
+	case shared.TimeStopped:
+		g.Player.Update(Scene.Collisions, func(d *collisions.Door) { g.CurrentDoor = d }, func(newState shared.GameState) { g.State = newState })
 	case shared.TransitionState:
 		g.Transition.Alpha += g.Transition.FadeSpeed
 		if g.Transition.Alpha >= 1.0 {
@@ -106,27 +113,27 @@ func (g *Game) Update() error {
 func (g *Game) Draw(screen *ebiten.Image) {
 	Scene := g.Scenes[g.CurrentScene]
 	switch g.State {
-	case shared.PlayState:
-		Scene.Draw(screen, Scene.Background, g.Player.X, g.Player.Y)
+	case shared.PlayState, shared.TimeStopped:
+		Scene.Draw(screen, Scene.Background, g.Player)
 		Scene.DrawNPCs(screen)
 		g.Player.Draw(screen, Scene.Width, Scene.Height)
-		Scene.Draw(screen, Scene.Foreground, g.Player.X, g.Player.Y)
+		Scene.Draw(screen, Scene.Foreground, g.Player)
 		g.Dialogue.Draw(screen)
 	case shared.TransitionState, shared.NewSceneState:
-		Scene.Draw(screen, Scene.Background, g.Player.X, g.Player.Y)
+		Scene.Draw(screen, Scene.Background, g.Player)
 		Scene.DrawNPCs(screen)
 		g.Player.Draw(screen, Scene.Width, Scene.Height)
-		Scene.Draw(screen, Scene.Foreground, g.Player.X, g.Player.Y)
+		Scene.Draw(screen, Scene.Foreground, g.Player)
 		fadeImage := ebiten.NewImage(screen.Bounds().Dx(), screen.Bounds().Dy())
 		fadeColor := color.RGBA{0, 0, 0, uint8(g.Transition.Alpha * 0xff)} // Black with variable Alpha
 		fadeImage.Fill(fadeColor)
 		screen.DrawImage(fadeImage, nil)
 		fadeImage.Dispose()
 	case shared.CutSceneState:
-		Scene.Draw(screen, Scene.Background, g.Player.X, g.Player.Y)
+		Scene.Draw(screen, Scene.Background, g.Player)
 		Scene.DrawNPCs(screen)
 		g.Player.Draw(screen, Scene.Width, Scene.Height)
-		Scene.Draw(screen, Scene.Foreground, g.Player.X, g.Player.Y)
+		Scene.Draw(screen, Scene.Foreground, g.Player)
 		fadeImage := ebiten.NewImage(screen.Bounds().Dx(), screen.Bounds().Dy())
 		fadeColor := color.RGBA{0, 0, 0, uint8(g.Transition.Alpha * 0xff)} // Black with variable Alpha
 		fadeImage.Fill(fadeColor)

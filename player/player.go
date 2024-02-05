@@ -132,7 +132,8 @@ func (p *Player) Update(sceneCollisions collisions.Collisions, onDoorChange func
 	}
 	p.Ability = None
 	if ebiten.IsKeyPressed(ebiten.KeyC) {
-		p.Ability = GhostMode
+		// p.Ability = GhostMode
+		p.Ability = StopTime
 	}
 	if moving {
 		newX, newY = p.FuturePosition(p.Direction)
