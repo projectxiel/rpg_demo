@@ -3,6 +3,7 @@ package game
 import (
 	"fmt"
 	"image/color"
+	"rpg_demo/ability"
 	"rpg_demo/collisions"
 	"rpg_demo/cutscene"
 	"rpg_demo/dialogue"
@@ -47,9 +48,10 @@ func New() *Game {
 func (g *Game) Update() error {
 	Scene := g.Scenes[g.CurrentScene]
 	g.HandleMusic()
-	if g.Player.Ability != player.StopTime && g.State == shared.TimeStopped {
+	if (!g.Player.Ability.Activated || g.Player.Ability.Type != ability.StopTime) && g.State == shared.TimeStopped {
 		g.State = shared.PlayState
 	}
+
 	switch g.State {
 	case shared.PlayState:
 		err := g.Player.Update(Scene.Collisions, func(door *collisions.Door) {
@@ -71,7 +73,11 @@ func (g *Game) Update() error {
 			g.State = shared.CutSceneState
 		}
 		g.KeyPressedLastFrame.KeyD = ebiten.IsKeyPressed(ebiten.KeyD)
-		if g.Player.Ability == player.StopTime {
+		if ebiten.IsKeyPressed(ebiten.KeyV) && !g.KeyPressedLastFrame.KeyV {
+			g.Player.Ability.CycleAbility()
+		}
+		g.KeyPressedLastFrame.KeyV = ebiten.IsKeyPressed(ebiten.KeyV)
+		if g.Player.Ability.Type == ability.StopTime && g.Player.Ability.Activated {
 			g.State = shared.TimeStopped
 		}
 	case shared.TimeStopped:

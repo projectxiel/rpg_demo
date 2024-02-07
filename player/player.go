@@ -3,6 +3,7 @@ package player
 import (
 	"image"
 	"log"
+	"rpg_demo/ability"
 	"rpg_demo/collisions"
 	"rpg_demo/shared"
 
@@ -10,14 +11,6 @@ import (
 	"github.com/hajimehoshi/ebiten/v2/ebitenutil"
 	"golang.org/x/text/cases"
 	"golang.org/x/text/language"
-)
-
-type Ability int
-
-const (
-	None Ability = iota
-	GhostMode
-	StopTime
 )
 
 type Frame struct {
@@ -34,7 +27,7 @@ type Player struct {
 	Frame        *Frame
 	Speed        float64
 	X, Y         float64
-	Ability      Ability
+	Ability      *ability.Ability
 	CanMove      bool
 }
 
@@ -50,8 +43,11 @@ func New() *Player {
 		Direction: "down",
 		X:         1000,
 		Y:         1000,
-		Ability:   None,
-		CanMove:   true,
+		Ability: &ability.Ability{
+			Type:      ability.None,
+			Activated: false,
+		},
+		CanMove: true,
 	}
 }
 
@@ -96,7 +92,7 @@ func (p *Player) Draw(screen *ebiten.Image, WorldWidth, WorldHeight float64) {
 			charY = ScreenHeight - (WorldHeight - p.Y)
 		}
 	}
-	if p.Ability == GhostMode {
+	if p.Ability.Type == ability.GhostMode && p.Ability.Activated {
 		var alpha float32 = 0.5
 		opts.ColorScale.Scale(1, 1, 1, alpha)
 	}
@@ -130,14 +126,13 @@ func (p *Player) Update(sceneCollisions collisions.Collisions, onDoorChange func
 		p.X = 1000
 		p.Y = 1000
 	}
-	p.Ability = None
+	p.Ability.DeactivateAbility()
 	if ebiten.IsKeyPressed(ebiten.KeyC) {
-		// p.Ability = GhostMode
-		p.Ability = StopTime
+		p.Ability.ActivateAbility()
 	}
 	if moving {
 		newX, newY = p.FuturePosition(p.Direction)
-		if !p.Colliding(sceneCollisions.Obstacles, newX, newY) || p.Ability == GhostMode {
+		if !p.Colliding(sceneCollisions.Obstacles, newX, newY) || p.Ability.Type == ability.GhostMode && p.Ability.Activated {
 			p.X = newX
 			p.Y = newY
 		}

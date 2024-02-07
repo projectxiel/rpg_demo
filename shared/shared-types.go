@@ -21,4 +21,5 @@ type KeyPressed struct {
 	KeyP bool
 	KeyZ bool
 	KeyD bool
+	KeyV bool
 }

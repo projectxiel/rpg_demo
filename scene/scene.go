@@ -3,6 +3,7 @@ package scene
 import (
 	"log"
 	"math"
+	"rpg_demo/ability"
 	"rpg_demo/collisions"
 	"rpg_demo/cutscene"
 	"rpg_demo/data"
@@ -68,7 +69,7 @@ func (s *Scene) Draw(screen, img *ebiten.Image, p *player.Player) {
 
 	opts := &ebiten.DrawImageOptions{}
 	opts.GeoM.Translate(bgX, bgY)
-	if p.Ability == player.StopTime {
+	if p.Ability.Type == ability.StopTime && p.Ability.Activated {
 		opts.ColorScale.Scale(.5, .5, .5, 1)
 	}
 	screen.DrawImage(img, opts)
